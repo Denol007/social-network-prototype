@@ -5,6 +5,8 @@ import (
 
 	"github.com/Denol007/social-network-prototype/backend/config"
 	"github.com/Denol007/social-network-prototype/backend/repository"
+	"github.com/Denol007/social-network-prototype/backend/routes"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -15,12 +17,21 @@ func main() {
 	}
 
 	// Подключаемся к базе данных
-	db, err := repository.NewDBConnection(cfg)
-	if err != nil {
+	if err := repository.NewDBConnection(cfg); err != nil {
 		log.Fatalf("Ошибка подключения к базе данных: %v", err)
 	}
-	defer db.Close() // Закрываем соединение при завершении работы приложения
+	defer repository.CloseDBConnection() // Закрываем соединение при завершении работы приложения
 
-	// Здесь запускаем веб-сервер или настраиваем маршрутизацию
-	log.Println("Сервер успешно запущен")
+	// Создаём экземпляр Gin
+	router := gin.Default()
+
+	// Регистрируем маршруты
+	routes.RegisterRoutes(router)
+
+	// Запускаем сервер на localhost:8080
+	if err := router.Run(":8080"); err != nil {
+		log.Fatalf("Ошибка запуска сервера: %v", err)
+	}
+
+	log.Println("Сервер успешно запущен на http://localhost:8080")
 }

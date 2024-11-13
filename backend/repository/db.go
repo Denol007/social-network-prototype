@@ -9,19 +9,32 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func NewDBConnection(cfg *config.Config) (*sql.DB, error) {
+// Объявляем глобальную переменную db
+var db *sql.DB
+
+// NewDBConnection устанавливает подключение к базе данных и сохраняет его в глобальной переменной db
+func NewDBConnection(cfg *config.Config) error {
 	dbInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Dbname, cfg.Database.Sslmode)
 
-	db, err := sql.Open("postgres", dbInfo)
+	var err error
+	db, err = sql.Open("postgres", dbInfo)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, err
+		return err
 	}
 
 	log.Println("Соединение с базой данных установлено")
-	return db, nil
+	return nil
+}
+
+// CloseDBConnection закрывает подключение к базе данных
+func CloseDBConnection() error {
+	if db != nil {
+		return db.Close()
+	}
+	return nil
 }
