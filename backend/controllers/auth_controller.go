@@ -39,3 +39,22 @@ func RegisterUser(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
+
+// LoginUser обрабатывает запрос логина пользователя
+func LoginUser(c *gin.Context) {
+	var req models.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат запроса"})
+		return
+	}
+
+	// Вызов сервиса для проверки учетных данных
+	user, err := services.LoginUser(req.Email, req.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный email или пароль"})
+		return
+	}
+
+	// Успешный вход — возвращаем успешный ответ
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": user})
+}
