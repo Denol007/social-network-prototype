@@ -7,17 +7,17 @@ import (
 
 	"github.com/Denol007/social-network-prototype/backend/models"
 	"github.com/Denol007/social-network-prototype/backend/repository"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/Denol007/social-network-prototype/backend/utils" // Импортируем utils
 )
 
 // Функция для регистрации нового пользователя
 func RegisterUser(user *models.User, password string) error {
 	// Хешируем пароль перед сохранением
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := utils.HashPassword(password) // Используем хеширование из utils
 	if err != nil {
 		return fmt.Errorf("ошибка при хешировании пароля: %v", err)
 	}
-	user.PasswordHash = string(hashedPassword)
+	user.PasswordHash = hashedPassword
 
 	// Сохраняем пользователя в базе данных
 	err = repository.CreateUser(user)
@@ -27,6 +27,7 @@ func RegisterUser(user *models.User, password string) error {
 	return nil
 }
 
+// Функция для входа пользователя
 func LoginUser(email, password string) (*models.User, error) {
 	user, err := repository.GetUserByEmail(email)
 	if err != nil {
@@ -35,7 +36,8 @@ func LoginUser(email, password string) (*models.User, error) {
 	}
 
 	// Сравниваем введенный пароль с хешем
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	err = utils.CheckPasswordHash(password, user.PasswordHash) // Используем проверку пароля из utils
+	if err != nil {
 		return nil, errors.New("неверный email или пароль")
 	}
 
