@@ -28,18 +28,24 @@ func RegisterUser(user *models.User, password string) error {
 }
 
 // Функция для входа пользователя
-func LoginUser(email, password string) (*models.User, error) {
+func LoginUser(email, password string) (*models.User, string, error) {
 	user, err := repository.GetUserByEmail(email)
 	if err != nil {
 		log.Println("Ошибка при получении пользователя:", err)
-		return nil, errors.New("неверный email или пароль")
+		return nil, "", errors.New("неверный email или пароль")
 	}
 
 	// Сравниваем введенный пароль с хешем
 	err = utils.CheckPasswordHash(password, user.PasswordHash) // Используем проверку пароля из utils
 	if err != nil {
-		return nil, errors.New("неверный email или пароль")
+		return nil, "", errors.New("неверный email или пароль")
 	}
 
-	return user, nil
+	// Генерация JWT токена
+	token, err := utils.GenerateJWT(user.ID, user.Email) // user.ID теперь строка
+	if err != nil {
+		return nil, "", fmt.Errorf("ошибка при генерации токена: %v", err)
+	}
+
+	return user, token, nil
 }

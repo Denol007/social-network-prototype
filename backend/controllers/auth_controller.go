@@ -3,6 +3,7 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Denol007/social-network-prototype/backend/models"
 	"github.com/Denol007/social-network-prototype/backend/services"
@@ -49,12 +50,26 @@ func LoginUser(c *gin.Context) {
 	}
 
 	// Вызов сервиса для проверки учетных данных
-	user, err := services.LoginUser(req.Email, req.Password)
+	user, token, err := services.LoginUser(req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный email или пароль"})
 		return
 	}
 
-	// Успешный вход — возвращаем успешный ответ
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": user})
+	// Успешный вход — возвращаем успешный ответ с токеном
+	c.SetCookie(
+		"auth_token",
+		token,
+		int(24*time.Hour.Seconds()), // Время жизни cookie, совпадающее с временем жизни JWT (24 часа)
+		"/",
+		"",   // Домен; оставьте пустым, чтобы использовался домен запроса
+		true, // Secure: если сервер HTTPS, установите в true
+		true, // HttpOnly, чтобы токен не был доступен через JavaScript
+	)
+
+	// Возвращаем успешный ответ без токена, так как он уже в cookies
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"user":    user,
+	})
 }

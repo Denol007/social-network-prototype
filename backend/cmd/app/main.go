@@ -2,14 +2,26 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/Denol007/social-network-prototype/backend/config"
 	"github.com/Denol007/social-network-prototype/backend/repository"
 	"github.com/Denol007/social-network-prototype/backend/routes"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Загружаем переменные окружения из .env файла
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Ошибка при загрузке .env файла: %v", err)
+	}
+
+	// Проверяем наличие обязательной переменной окружения для JWT
+	if os.Getenv("JWT_SECRET_KEY") == "" {
+		log.Fatal("JWT_SECRET_KEY не задан в переменных окружения")
+	}
+
 	// Загружаем конфигурацию
 	cfg, err := config.LoadConfig()
 	if err != nil {
