@@ -11,5 +11,8 @@ func RegisterRoutes(router *gin.Engine) {
 	{
 		api.POST("/register", controllers.RegisterUser)
 		api.POST("/login", controllers.LoginUser)
+
+		api.GET("/auth/google/login", controllers.GoogleLogin)
+		api.GET("/auth/google/callback", controllers.GoogleCallback)
 	}
 }

@@ -12,15 +12,17 @@ import (
 
 // Функция для регистрации нового пользователя
 func RegisterUser(user *models.User, password string) error {
-	// Хешируем пароль перед сохранением
-	hashedPassword, err := utils.HashPassword(password) // Используем хеширование из utils
-	if err != nil {
-		return fmt.Errorf("ошибка при хешировании пароля: %v", err)
+	// Если пароль передан (для обычной регистрации), то хешируем его
+	if password != "" {
+		hashedPassword, err := utils.HashPassword(password) // Используем хеширование из utils
+		if err != nil {
+			return fmt.Errorf("ошибка при хешировании пароля: %v", err)
+		}
+		user.PasswordHash = hashedPassword
 	}
-	user.PasswordHash = hashedPassword
 
 	// Сохраняем пользователя в базе данных
-	err = repository.CreateUser(user)
+	err := repository.CreateUser(user)
 	if err != nil {
 		return fmt.Errorf("ошибка сохранения пользователя в базе данных: %v", err)
 	}
